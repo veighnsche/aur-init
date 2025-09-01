@@ -1,14 +1,27 @@
 # aur-init
 
-`aur-init` is a scaffolding tool for creating new Arch Linux / AUR package projects.
+`aur-init` is a tiny scaffolding tool for creating new Arch Linux / AUR package projects.
+
+## Features
+
+- Generates a ready-to-build AUR project folder: `PKGBUILD`, `.gitignore`, `README.md`
+- Language templates: minimal sources for `python`, `node`, `go`, `cmake`, `rust`
+- Optional extras: initialize git, generate `.SRCINFO`, add CI workflow, test scaffold
+- Interactive mode to pick options without memorizing flags
+
+## Install
+
+```bash
+makepkg -si
+```
 
 ## Usage
 
-```
-aur-init [options] <pkgname>
+```bash
+aur-init [options] [pkgname]
 ```
 
-This will generate a new folder with:
+This generates a new folder named after `<pkgname>` containing:
 
 * PKGBUILD
 * .gitignore
@@ -16,25 +29,25 @@ This will generate a new folder with:
 
 ## Options
 
-- `-m, --maintainer "Name <email>"` — Maintainer string. Default: `$(whoami) <you@example.com>`
-- `-d, --desc "Description"` — Package description.
-- `-u, --url URL` — Project URL. Defaults to `https://example.com/<pkgname>` if not set.
-- `-l, --license LICENSE` — License identifier. Default: `MIT`.
-- `-D, --depends "dep1 dep2"` — Space-separated runtime dependencies.
-- `--git-init` — Initialize a git repository and create an initial commit.
-- `--gen-srcinfo` — Generate `.SRCINFO` using `makepkg --printsrcinfo` (if available).
-- `--type TYPE` — Template to scaffold language/tooling. One of: `python`, `go`, `node`, `cmake`.
-- `--with-tests` — Add a simple test script and a `check()` function to `PKGBUILD`.
-- `--vcs git` — Use a VCS source (currently supports `git`) and add a `pkgver()` function.
-- `--vcs-url URL` — VCS repository URL, required when `--vcs` is used.
-- `--ci` — Add a basic GitHub Actions workflow to generate `.SRCINFO` on pushes/PRs.
-- `--force` — Overwrite files if the target directory exists and is not empty.
-- `-h, --help` — Show help.
+- `--type {,python,node,go,cmake,rust}` — Template to scaffold (empty for plain PKGBUILD)
+- `-m, --maintainer` — Maintainer string. Default: `vince <you@example.com>`
+- `-d, --description` — Package description
+- `-u, --url` — Project URL (defaults to `https://example.com/<pkgname>`)
+- `-l, --license` — License identifier (default: `MIT`)
+- `--vcs {,git}` — Use a VCS source (supports `git`), adds `pkgver()`
+- `--vcs-url` — Required when `--vcs` is set
+- `--git-init` — Initialize a git repository
+- `--srcinfo` — Generate `.SRCINFO` via `makepkg --printsrcinfo`
+- `--ci` — Add a basic GitHub Actions workflow
+- `--tests` — Add a simple test script and enable `check()`
+- `--force` — Overwrite non-empty target directory
+- `-i, --interactive` — Run an interactive form to choose options
+- `-h, --help` — Show help
 
 ### Examples
 
 ```bash
-# Minimal
+# Minimal (plain PKGBUILD)
 aur-init hello-world
 
 # With metadata and dependencies
@@ -42,42 +55,34 @@ aur-init -m "Jane Doe <jane@example.com>" \
          -d "Hello world example" \
          -u https://example.com/hello-world \
          -l MIT \
-         -D "curl jq" \
-         --git-init --gen-srcinfo \
+         --git-init --srcinfo --ci \
          hello-world
 
-# Language-specific scaffolds
 # Python CLI with tests
-aur-init --type python --with-tests mypycli
+aur-init --type python --tests mypycli
 
 # Go binary, init git, and CI
 aur-init --type go --git-init --ci mygocli
 
 # Node binary with dependencies
-aur-init --type node -D "nodejs npm" mynodecli
+aur-init --type node mynodecli
 
 # CMake project
 aur-init --type cmake mycmakeapp
 
+# Rust binary
+aur-init --type rust myrustcli
+
 # VCS package (git)
 aur-init --vcs git --vcs-url https://github.com/user/proj.git proj-git
-```
 
-## Install
-
-```
-makepkg -si
-```
-
-Or, once published:
-
-```
-paru -S aur-init
+# Interactive flow (no extra deps required)
+aur-init --interactive
 ```
 
 ## Generated PKGBUILD
 
-The template includes empty `prepare()`/`build()` functions and a simple `package()` that installs a README file into `/usr/share/<pkgname>/`. Adjust as needed for your software.
+Templates produce minimal sources so the generated `PKGBUILD` can build immediately.
 
 To regenerate `.SRCINFO`:
 
@@ -87,6 +92,5 @@ makepkg --printsrcinfo > .SRCINFO
 
 ## Notes
 
-- Templates create minimal sources so the generated `PKGBUILD` can build immediately.
 - With `--vcs`, the generated `PKGBUILD` assumes the repository layout matches the chosen template (e.g., `src/<pkgname>/main.py` for `python`, `src/main.js` for `node`, etc.). Adjust paths if your repo differs.
 - Use `--force` to scaffold into an existing non-empty directory (files will be overwritten).

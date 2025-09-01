@@ -94,6 +94,9 @@ def execute(args) -> int:
     # PKGBUILD rendering
     tpl_dir = find_templates_dir()
     tmpl = tpl_dir / "common/PKGBUILD.tmpl"
+    if not tmpl.exists():
+        print(f"Template not found: {tmpl}. Ensure templates are installed at '{tpl_dir}' (dev: templates/; install: /usr/share/aur-init/templates)", file=sys.stderr)
+        return 1
     arch_line = compute_arch_line(t)
     dep_line = f"depends=({join_single_quoted(depends)})" if depends else ""
     makedep_line = f"makedepends=({join_single_quoted(makedepends)})" if makedepends else ""

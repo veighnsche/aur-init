@@ -16,7 +16,6 @@ def write_file(p: Path, data: str, mode=0o644):
 def scaffold_common_files(root: Path, pkgname: str):
     write_file(root / ".gitignore", """# Build artifacts
 /pkg/
-/src/
 *.tar.*
 *.tar.gz
 *.tar.zst
@@ -25,16 +24,40 @@ def scaffold_common_files(root: Path, pkgname: str):
 """, 0o644)
     write_file(root / "README.md", f"""# {pkgname}
 
-Generated with `aur-init`.
+Initialized with `aur-init`.
 
-## Build
+## Build and install
 
-makepkg -si
+1. Review and update fields in `PKGBUILD` as needed (pkgdesc, url, license, depends, makedepends).
+2. Build and install:
 
-## Notes
+   ```bash
+   makepkg -si
+   ```
 
-- Update fields in PKGBUILD as needed.
-- Generate .SRCINFO with: makepkg --printsrcinfo > .SRCINFO
+## Developer notes
+
+- Generate `.SRCINFO`:
+
+  ```bash
+  makepkg --printsrcinfo > .SRCINFO
+  ```
+
+- Clean build artifacts:
+
+  ```bash
+  rm -rf pkg/ src/ *.tar.* *.tar.zst *.log *.lock
+  ```
+
+## Project layout
+
+- `PKGBUILD` — package recipe
+- `bin/` — installed entrypoints (if applicable)
+- `src/` — project sources (if applicable)
+
+## Running
+
+After install, `{pkgname}` should be available on your `PATH` if a `bin/{pkgname}` script was generated.
 """, 0o644)
 
 
