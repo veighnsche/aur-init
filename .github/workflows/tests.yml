@@ -24,7 +24,10 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-cov coverage genbadge[all]
+          pip install pytest pytest-cov coverage
+          # Try genbadge with extras, fall back to base package
+          pip install 'genbadge[all]' || pip install genbadge
+          pip show genbadge || true
 
       - name: Run tests with coverage
         run: |
@@ -35,9 +38,17 @@ jobs:
             --cov-report=xml:coverage.xml \
             --cov-fail-under=65
 
-      - name: Generate coverage badge
+      - name: Generate coverage badge (if available)
         run: |
-          python -m genbadge.coverage -i coverage.xml -o coverage-badge.svg
+          python - <<'PY'
+          import importlib, sys, subprocess
+          try:
+              importlib.import_module('genbadge.coverage')
+          except Exception:
+              print('genbadge not available; skipping badge generation', file=sys.stderr)
+              sys.exit(0)
+          subprocess.check_call([sys.executable, '-m', 'genbadge.coverage', '-i', 'coverage.xml', '-o', 'coverage-badge.svg'])
+          PY
 
       - name: Upload coverage report artifact
         uses: actions/upload-artifact@v4
@@ -47,6 +58,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Commit coverage badge
+        if: ${{ hashFiles('coverage-badge.svg') != '' }}
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(ci): update coverage badge"
