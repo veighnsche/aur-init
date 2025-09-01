@@ -46,7 +46,7 @@ Initialized with `aur-init`.
 - Clean build artifacts:
 
   ```bash
-  rm -rf pkg/ src/ *.tar.* *.tar.zst *.log *.lock
+  rm -rf pkg/ *.tar.* *.tar.zst *.log *.lock
   ```
 
 ## Project layout
@@ -64,11 +64,11 @@ After install, `{pkgname}` should be available on your `PATH` if a `bin/{pkgname
 def scaffold_template(root: Path, t: str, pkgname: str):
     if t == "python":
         ensure_dir(root / f"src/{pkgname}")
-        write_file(root / f"src/{pkgname}/main.py", f"""#!/usr/bin/env python
+        write_file(root / f"src/{pkgname}/main.py", f"""#!/usr/bin/env python3
 print(\"Hello from {pkgname} (python)\")
 """, 0o755)
         write_file(root / f"bin/{pkgname}", f"""#!/usr/bin/env bash
-exec python "/usr/share/{pkgname}/main.py" "$@"
+exec python3 "/usr/share/{pkgname}/main.py" "$@"
 """, 0o755)
     elif t == "node":
         ensure_dir(root / "src")

@@ -25,7 +25,31 @@ build() {
 @CHECK_BLOCK@
 
 package() {
-  install -d "$pkgdir/usr/share/$pkgname"
-  echo "Hello from $pkgname" > "$pkgdir/usr/share/$pkgname/README.txt"
 @PACKAGE_BLOCK@
+
+  # Optional: man page (check common locations)
+  if [[ -f "$srcdir/$pkgname.1" ]]; then
+    install -Dm644 /dev/stdin "$pkgdir/usr/share/man/man1/$pkgname.1.gz" <<<"$(gzip -9c "$srcdir/$pkgname.1")"
+  elif [[ -f "$srcdir/man/$pkgname.1" ]]; then
+    install -Dm644 /dev/stdin "$pkgdir/usr/share/man/man1/$pkgname.1.gz" <<<"$(gzip -9c "$srcdir/man/$pkgname.1")"
+  elif [[ -f "$srcdir/docs/$pkgname.1" ]]; then
+    install -Dm644 /dev/stdin "$pkgdir/usr/share/man/man1/$pkgname.1.gz" <<<"$(gzip -9c "$srcdir/docs/$pkgname.1")"
+  fi
+
+  # Optional: bash completion
+  if [[ -f "$srcdir/completions/$pkgname.bash" ]]; then
+    install -Dm644 "$srcdir/completions/$pkgname.bash" "$pkgdir/usr/share/bash-completion/completions/$pkgname"
+  elif [[ -f "$srcdir/completions/bash/$pkgname" ]]; then
+    install -Dm644 "$srcdir/completions/bash/$pkgname" "$pkgdir/usr/share/bash-completion/completions/$pkgname"
+  fi
+
+  # Optional: zsh completion
+  if [[ -f "$srcdir/completions/zsh/_$pkgname" ]]; then
+    install -Dm644 "$srcdir/completions/zsh/_$pkgname" "$pkgdir/usr/share/zsh/site-functions/_$pkgname"
+  fi
+
+  # Optional: fish completion
+  if [[ -f "$srcdir/completions/fish/$pkgname.fish" ]]; then
+    install -Dm644 "$srcdir/completions/fish/$pkgname.fish" "$pkgdir/usr/share/fish/completions/$pkgname.fish"
+  fi
 }

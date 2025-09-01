@@ -100,6 +100,9 @@ def execute(args) -> int:
     arch_line = compute_arch_line(t)
     dep_line = f"depends=({join_single_quoted(depends)})" if depends else ""
     makedep_line = f"makedepends=({join_single_quoted(makedepends)})" if makedepends else ""
+    # Ensure test script is shipped when requested
+    if args.with_tests:
+        local_sources.append("scripts/tests/test.sh")
     src_sha = compute_source_and_sha(local_sources, vcs, vcs_url, pkgname)
 
     rendered = render_template(

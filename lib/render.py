@@ -50,17 +50,17 @@ def compute_source_and_sha(local_sources, vcs, vcs_url, pkgname):
 def build_block(t: str, vcs: bool) -> str:
     lines = []
     if not vcs and t == "go":
-        lines.append('  cd "$srcdir"; go build -o "$pkgname" .')
+        lines.append('  cd "$srcdir"; GOFLAGS="${GOFLAGS} -buildmode=pie -trimpath" go build -o "$pkgname" .')
     if not vcs and t == "cmake":
         lines.append('  cmake -S "$srcdir" -B "$srcdir/build" -DCMAKE_BUILD_TYPE=Release && cmake --build "$srcdir/build" --config Release')
     if not vcs and t == "rust":
-        lines.append('  cd "$srcdir"; cargo build --release')
+        lines.append('  cd "$srcdir"; if [[ -f Cargo.lock ]]; then cargo build --release --frozen; else cargo build --release; fi')
     if vcs and t == "go":
-        lines.append('  cd "$srcdir/$pkgname"; go build -o "$pkgname" .')
+        lines.append('  cd "$srcdir/$pkgname"; GOFLAGS="${GOFLAGS} -buildmode=pie -trimpath" go build -o "$pkgname" .')
     if vcs and t == "cmake":
         lines.append('  cmake -S "$srcdir/$pkgname" -B "$srcdir/build" -DCMAKE_BUILD_TYPE=Release && cmake --build "$srcdir/build" --config Release')
     if vcs and t == "rust":
-        lines.append('  cd "$srcdir/$pkgname"; cargo build --release')
+        lines.append('  cd "$srcdir/$pkgname"; if [[ -f Cargo.lock ]]; then cargo build --release --frozen; else cargo build --release; fi')
     return ("\n".join(lines) + ("\n" if lines else ""))
 
 

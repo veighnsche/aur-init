@@ -90,6 +90,26 @@ To regenerate `.SRCINFO`:
 makepkg --printsrcinfo > .SRCINFO
 ```
 
+## QA before publishing
+
+- namcap:
+
+  ```bash
+  namcap PKGBUILD
+  makepkg -f
+  namcap *.pkg.tar.*
+  ```
+
+- Clean chroot build (extra/devtools):
+
+  ```bash
+  # one-time setup per arch
+  mkarchroot /var/lib/archbuild/clean/root base-devel
+
+  # build
+  extra-x86_64-build   # or: arch-nspawn /var/lib/archbuild/clean/root makepkg -s
+  ```
+
 ## Notes
 
 - With `--vcs`, the generated `PKGBUILD` assumes the repository layout matches the chosen template (e.g., `src/<pkgname>/main.py` for `python`, `src/main.js` for `node`, etc.). Adjust paths if your repo differs.
