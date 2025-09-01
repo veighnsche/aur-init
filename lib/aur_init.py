@@ -18,18 +18,25 @@ def main(argv):
     if getattr(args, "doctor", False):
         return doctor()
     # Interactive mode handling and required-field validation
-    if getattr(args, "interactive", False):
-        if not sys.stdin.isatty():
-            print("--interactive requires a TTY. Run in a terminal or omit --interactive.", file=sys.stderr)
+    try:
+        if getattr(args, "interactive", False):
+            if not sys.stdin.isatty():
+                print("--interactive requires a TTY. Run in a terminal or omit --interactive.", file=sys.stderr)
+                return 2
+            args = collect_interactive_inputs(args)
+            # If user chose doctor interactively, run it now
+            if getattr(args, "doctor", False):
+                return doctor()
+        elif not args.pkgname:
+            print("pkgname is required. Provide it positionally or use --interactive.", file=sys.stderr)
             return 2
-        args = collect_interactive_inputs(args)
-        # If user chose doctor interactively, run it now
-        if getattr(args, "doctor", False):
-            return doctor()
-    elif not args.pkgname:
-        print("pkgname is required. Provide it positionally or use --interactive.", file=sys.stderr)
-        return 2
-    return execute(args)
+        return execute(args)
+    except KeyboardInterrupt:
+        print("\nAborted by user (Ctrl+C).", file=sys.stderr)
+        return 130
+    except EOFError:
+        print("\nAborted: input stream closed (EOF).", file=sys.stderr)
+        return 130
 
 
 if __name__ == "__main__":
