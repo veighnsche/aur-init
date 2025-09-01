@@ -1,6 +1,8 @@
 # aur-init
-
-`aur-init` is a tiny scaffolding tool for creating new Arch Linux / AUR package projects.
+ 
+ ![Coverage](coverage-badge.svg)
+ 
+ `aur-init` is a tiny scaffolding tool for creating new Arch Linux / AUR package projects.
 
 ## Features
 

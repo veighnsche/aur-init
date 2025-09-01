@@ -1,0 +1,18 @@
+[run]
+branch = True
+source =
+    lib
+omit =
+    tests/*
+    scripts/*
+
+[report]
+show_missing = True
+skip_covered = True
+precision = 1
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.: 
+
+[html]
+directory = htmlcov

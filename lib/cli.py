@@ -55,7 +55,10 @@ def parse_args(argv):
     ux.add_argument("--doctor", dest="doctor", action="store_true", help="Check local prerequisites: makepkg, fakeroot, git, namcap")
     ux.add_argument("-f", "--force", action="store_true", help="Overwrite an existing non-empty target directory")
     ux.add_argument("-i", "--interactive", action="store_true", help="Run an interactive form to choose options")
-    ux.add_argument("--from-file", dest="from_file", default=None, metavar="PATH", help="Load default preferences from a TOML/JSON file")
+
+    # Profiles & Config
+    prof = ap.add_argument_group("Profiles & Config")
+    prof.add_argument("--from-file", dest="from_file", default=None, metavar="PATH", help="Load default preferences from a TOML/JSON file")
 
     return ap.parse_args(argv)
 

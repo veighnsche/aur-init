@@ -126,7 +126,7 @@ def maybe_scaffold_man(root: Path, pkgname: str, enabled: bool):
     ensure_dir(root / "man")
     write_file(root / f"man/{pkgname}.1", f""".TH {pkgname} 1
 .SH NAME
-{pkgname} \- example CLI
+{pkgname} \\- example CLI
 .SH SYNOPSIS
 .B {pkgname}
 [options]
