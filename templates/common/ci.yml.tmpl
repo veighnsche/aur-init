@@ -1,0 +1,14 @@
+name: AUR CI
+on: [push, pull_request]
+jobs:
+  srcinfo:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build tools
+        run: pacman -Syu --noconfirm base-devel git
+      - name: Generate .SRCINFO
+        run: makepkg --printsrcinfo > .SRCINFO
+      - name: Show .SRCINFO
+        run: cat .SRCINFO || true
