@@ -92,7 +92,9 @@ def collect_interactive_inputs(args):
         maintainer = ask_text("Maintainer", default=(args.maintainer or "vince <you@example.com>"))
         description = ask_text("Description", default=(args.description or "TODO: describe your package"))
 
-        default_url = args.url or f"https://example.com/{pkgname}"
+        # Build default URL from profile's url_base if provided; else fallback
+        url_base = getattr(args, "url_base", None)
+        default_url = args.url or (f"{url_base.rstrip('/')}/{pkgname}" if url_base else f"https://example.com/{pkgname}")
         url = ask_text("Project URL", default=default_url)
         license_ = ask_text("License", default=(args.license or "MIT"))
 
