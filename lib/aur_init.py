@@ -72,6 +72,10 @@ def main(argv):
         makedepends += ["cmake", "make", "gcc"]
         if not vcs:
             local_sources += ["CMakeLists.txt", "src/main.cpp"]
+    elif t == "rust":
+        makedepends += ["rust", "cargo"]
+        if not vcs:
+            local_sources += ["Cargo.toml", "src/main.rs"]
     elif t == "":
         pass
     else:

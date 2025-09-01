@@ -69,6 +69,19 @@ add_executable({pkgname} src/main.cpp)
         write_file(root / "src/main.cpp", f"""#include <iostream>
 int main(){{ std::cout << "Hello from {pkgname} (cmake)\\n"; return 0; }}
 """, 0o644)
+    elif t == "rust":
+        ensure_dir(root / "src")
+        write_file(root / "Cargo.toml", f"""[package]
+name = "{pkgname}"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+""", 0o644)
+        write_file(root / "src/main.rs", f"""fn main() {{
+    println!("Hello from {pkgname} (rust)");
+}}
+""", 0o644)
     # else minimal: nothing
 
 

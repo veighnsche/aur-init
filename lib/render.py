@@ -23,7 +23,7 @@ def render_template(template_path: Path, replacements: dict) -> str:
 
 
 def compute_arch_line(t: str) -> str:
-    if t in ("go", "cmake"):
+    if t in ("go", "cmake", "rust"):
         return "arch=('x86_64')"
     return "arch=('any')"
 
@@ -53,10 +53,14 @@ def build_block(t: str, vcs: bool) -> str:
         lines.append('  cd "$srcdir"; go build -o "$pkgname" .')
     if not vcs and t == "cmake":
         lines.append('  cmake -S "$srcdir" -B "$srcdir/build" -DCMAKE_BUILD_TYPE=Release && cmake --build "$srcdir/build" --config Release')
+    if not vcs and t == "rust":
+        lines.append('  cd "$srcdir"; cargo build --release')
     if vcs and t == "go":
         lines.append('  cd "$srcdir/$pkgname"; go build -o "$pkgname" .')
     if vcs and t == "cmake":
         lines.append('  cmake -S "$srcdir/$pkgname" -B "$srcdir/build" -DCMAKE_BUILD_TYPE=Release && cmake --build "$srcdir/build" --config Release')
+    if vcs and t == "rust":
+        lines.append('  cd "$srcdir/$pkgname"; cargo build --release')
     return ("\n".join(lines) + ("\n" if lines else ""))
 
 
@@ -81,6 +85,8 @@ def package_block(t: str, vcs: bool) -> str:
         lines.append('  install -Dm755 "$srcdir/$pkgname" "$pkgdir/usr/bin/$pkgname"')
     if not vcs and t == "cmake":
         lines.append('  install -Dm755 "$srcdir/build/$pkgname" "$pkgdir/usr/bin/$pkgname"')
+    if not vcs and t == "rust":
+        lines.append('  install -Dm755 "$srcdir/target/release/$pkgname" "$pkgdir/usr/bin/$pkgname"')
     if vcs and t == "python":
         lines.append('  install -Dm644 "$srcdir/$pkgname/src/$pkgname/main.py" "$pkgdir/usr/share/$pkgname/main.py"')
         lines.append('  install -Dm755 "$srcdir/$pkgname/bin/$pkgname" "$pkgdir/usr/bin/$pkgname"')
@@ -91,6 +97,8 @@ def package_block(t: str, vcs: bool) -> str:
         lines.append('  install -Dm755 "$srcdir/$pkgname/$pkgname" "$pkgdir/usr/bin/$pkgname"')
     if vcs and t == "cmake":
         lines.append('  install -Dm755 "$srcdir/build/$pkgname" "$pkgdir/usr/bin/$pkgname"')
+    if vcs and t == "rust":
+        lines.append('  install -Dm755 "$srcdir/$pkgname/target/release/$pkgname" "$pkgdir/usr/bin/$pkgname"')
     return ("\n".join(lines) + ("\n" if lines else ""))
 
 

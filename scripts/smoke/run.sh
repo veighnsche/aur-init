@@ -15,7 +15,7 @@ fi
 mkdir -p "$SMOKE_DIR"
 cd "$SMOKE_DIR"
 
-declare -a types=( "" python node go cmake )
+declare -a types=( "" python node go cmake rust )
 status=0
 
 for t in "${types[@]}"; do
