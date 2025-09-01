@@ -17,7 +17,17 @@ def parse_args(argv):
     ap.add_argument("--srcinfo", dest="gen_srcinfo", action="store_true")
     ap.add_argument("--ci", dest="add_ci", action="store_true")
     ap.add_argument("--tests", dest="with_tests", action="store_true")
+    ap.add_argument("--with-man", dest="with_man", action="store_true", help="Scaffold a minimal man page (man1/$pkgname.1)")
+    ap.add_argument("--with-completions", dest="with_completions", action="store_true", help="Scaffold bash/zsh/fish completions")
+    ap.add_argument("--rust-lock", dest="rust_lock", action="store_true", help="For Rust projects, generate a Cargo.lock (requires cargo)")
+    # Modes and utilities
+    ap.add_argument("--dry-run", dest="dry_run", action="store_true", help="Do not write files; print PKGBUILD (and optionally .SRCINFO) to stdout")
+    ap.add_argument("--strict", dest="strict", action="store_true", default=True, help="Enable strict validations (default)")
+    ap.add_argument("--no-strict", dest="strict", action="store_false", help="Relax validations (allow some defaults)")
+    ap.add_argument("--explain", dest="explain", action="store_true", help="Explain generated PKGBUILD fields with ArchWiki links")
+    ap.add_argument("--doctor", dest="doctor", action="store_true", help="Check local prerequisites (makepkg, fakeroot, git, namcap)")
     ap.add_argument("--force", action="store_true")
     ap.add_argument("-i", "--interactive", action="store_true", help="Run an interactive form to choose options")
     return ap.parse_args(argv)
+
 

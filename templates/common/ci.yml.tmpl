@@ -7,8 +7,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install build tools
-        run: pacman -Syu --noconfirm base-devel git
+        run: pacman -Syu --noconfirm base-devel git namcap
       - name: Generate .SRCINFO
         run: makepkg --printsrcinfo > .SRCINFO
       - name: Show .SRCINFO
         run: cat .SRCINFO || true
+      - name: Run namcap
+        run: |
+          namcap PKGBUILD || true
+          if [[ -f .SRCINFO ]]; then namcap .SRCINFO || true; fi

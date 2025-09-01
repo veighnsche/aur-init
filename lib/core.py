@@ -37,6 +37,12 @@ def execute(args) -> int:
     vcs = args.vcs
     vcs_url = args.vcs_url
 
+    # Basic pkgname validation (letters, digits, @._+-)
+    import re
+    if not re.fullmatch(r"[a-z0-9@._+-][a-z0-9@._+\-]*", pkgname):
+        print("Invalid pkgname: only lowercase letters, digits and @._+- are allowed", file=sys.stderr)
+        return 2
+
     target = Path.cwd() / pkgname
     if target.exists() and any(target.iterdir()) and not args.force:
         print(f"Target directory '{pkgname}' exists and is not empty. Use --force to overwrite.", file=sys.stderr)
@@ -86,10 +92,17 @@ def execute(args) -> int:
         print(f"Unsupported --vcs: {vcs}", file=sys.stderr)
         return 1
 
-    # Scaffold files
-    scaffold_common_files(target, pkgname)
-    scaffold_template(target, t, pkgname)
-    maybe_scaffold_tests(target, args.with_tests)
+    # Scaffold files (skipped for dry-run)
+    if not getattr(args, "dry_run", False):
+        scaffold_common_files(target, pkgname)
+        scaffold_template(target, t, pkgname)
+        maybe_scaffold_tests(target, args.with_tests)
+        # Optional docs and completions
+        from scaffold import maybe_scaffold_man, maybe_scaffold_completions, maybe_generate_rust_lock
+        maybe_scaffold_man(target, pkgname, getattr(args, "with_man", False))
+        maybe_scaffold_completions(target, pkgname, getattr(args, "with_completions", False))
+        if t == "rust":
+            maybe_generate_rust_lock(target, getattr(args, "rust_lock", False))
 
     # PKGBUILD rendering
     tpl_dir = find_templates_dir()
@@ -100,9 +113,20 @@ def execute(args) -> int:
     arch_line = compute_arch_line(t)
     dep_line = f"depends=({join_single_quoted(depends)})" if depends else ""
     makedep_line = f"makedepends=({join_single_quoted(makedepends)})" if makedepends else ""
-    # Ensure test script is shipped when requested
+    # Ensure optional assets are shipped when requested
     if args.with_tests:
         local_sources.append("scripts/tests/test.sh")
+    if getattr(args, "with_man", False):
+        # Look for man page in common locations
+        for manpath in (f"man/{pkgname}.1", f"{pkgname}.1", f"docs/{pkgname}.1"):
+            if (target / manpath).exists():
+                local_sources.append(manpath)
+                break
+    if getattr(args, "with_completions", False):
+        for compl in (f"completions/{pkgname}.bash", f"completions/bash/{pkgname}", f"completions/zsh/_{pkgname}", f"completions/fish/{pkgname}.fish"):
+            if (target / compl).exists():
+                local_sources.append(compl)
+        
     src_sha = compute_source_and_sha(local_sources, vcs, vcs_url, pkgname)
 
     rendered = render_template(
@@ -124,12 +148,57 @@ def execute(args) -> int:
             "PKGVER_BLOCK": pkgver_block(bool(vcs)),
         },
     )
+    # Strict mode checks
+    if getattr(args, "strict", True):
+        missing = []
+        if not pkgurl:
+            missing.append("url")
+        if not pkglicense:
+            missing.append("license")
+        # For language types, we expect at least one runtime dependency
+        if t in {"python", "node"} and not depends:
+            missing.append("depends")
+        if missing:
+            print(f"Strict mode: missing required metadata: {', '.join(missing)}", file=sys.stderr)
+            return 2
+
+    # Explain mode: print brief rationale with ArchWiki links
+    if getattr(args, "explain", False):
+        print("# Explain: Key PKGBUILD fields (see ArchWiki: PKGBUILD)")
+        print("# pkgname/pkver/pkgrel: mandatory identity/version fields — https://wiki.archlinux.org/title/PKGBUILD")
+        print("# url/license: upstream home and license — https://wiki.archlinux.org/title/PKGBUILD#license")
+        print("# depends/makedepends: runtime vs build deps — https://wiki.archlinux.org/title/PKGBUILD#depends")
+        print("# source/sha256sums: sources and checksums — https://wiki.archlinux.org/title/PKGBUILD#source")
+        print("# prepare/build/check/package: phases separation — https://wiki.archlinux.org/title/PKGBUILD#Package_guidelines")
+        if vcs:
+            print("# pkgver(): derive version from VCS — https://wiki.archlinux.org/title/VCS_package_guidelines")
+
+    if getattr(args, "dry_run", False):
+        # Print PKGBUILD to stdout and optionally .SRCINFO
+        print(rendered)
+        if getattr(args, "gen_srcinfo", False):
+            import tempfile, subprocess, shutil
+            with tempfile.TemporaryDirectory() as td:
+                td_path = Path(td)
+                (td_path / "PKGBUILD").write_text(rendered)
+                makepkg = shutil.which("makepkg")
+                if makepkg:
+                    try:
+                        out = subprocess.check_output([makepkg, "--printsrcinfo"], cwd=td, text=True)
+                        print("# .SRCINFO\n" + out)
+                    except Exception as e:
+                        print(f"[dry-run] Failed to run makepkg --printsrcinfo: {e}", file=sys.stderr)
+                else:
+                    print("[dry-run] makepkg not found; cannot generate .SRCINFO", file=sys.stderr)
+        return 0
+
     write_file(target / "PKGBUILD", rendered, 0o600)
 
     # Features
-    maybe_git_init(target, args.git_init, pkgname)
-    maybe_gen_srcinfo(target, args.gen_srcinfo)
-    maybe_add_ci(target, args.add_ci)
+    if not getattr(args, "dry_run", False):
+        maybe_git_init(target, args.git_init, pkgname)
+        maybe_gen_srcinfo(target, args.gen_srcinfo)
+        maybe_add_ci(target, args.add_ci)
 
     print(f"✅ AUR package project initialized in {pkgname}/")
     return 0

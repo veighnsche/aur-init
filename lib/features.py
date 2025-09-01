@@ -66,3 +66,32 @@ jobs:
       - name: Show .SRCINFO
         run: cat .SRCINFO || true
 """, 0o644)
+
+
+def doctor() -> int:
+    """Check local prerequisites and print a report. Returns 0 if OK, 1 otherwise."""
+    checks = {
+        "makepkg": shutil.which("makepkg") is not None,
+        "fakeroot": shutil.which("fakeroot") is not None,
+        "git": shutil.which("git") is not None,
+        "namcap": shutil.which("namcap") is not None,
+    }
+    # Optional toolchains
+    optional = {
+        "go": shutil.which("go") is not None,
+        "cargo": shutil.which("cargo") is not None,
+        "cmake": shutil.which("cmake") is not None,
+        "node": shutil.which("node") is not None,
+    }
+    print("aur-init doctor:\n")
+    print("Required:")
+    for k, ok in checks.items():
+        print(f"  - {k}: {'OK' if ok else 'MISSING'}")
+    print("\nOptional (based on template type):")
+    for k, ok in optional.items():
+        print(f"  - {k}: {'OK' if ok else 'missing'}")
+    rc = 0 if all(checks.values()) else 1
+    if rc != 0:
+        print("\nSome required tools are missing. Install base-devel and namcap:")
+        print("  sudo pacman -S --needed base-devel namcap")
+    return rc

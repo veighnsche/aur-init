@@ -10,10 +10,13 @@ if str(LIB_DIR) not in sys.path:
 from cli import parse_args  # noqa: E402
 from interactive import collect_interactive_inputs  # noqa: E402
 from core import execute  # noqa: E402
+from features import doctor  # noqa: E402
 
 
 def main(argv):
     args = parse_args(argv)
+    if getattr(args, "doctor", False):
+        return doctor()
     # Interactive mode handling and required-field validation
     if getattr(args, "interactive", False):
         if not sys.stdin.isatty():
