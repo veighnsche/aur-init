@@ -23,6 +23,9 @@ def main(argv):
             print("--interactive requires a TTY. Run in a terminal or omit --interactive.", file=sys.stderr)
             return 2
         args = collect_interactive_inputs(args)
+        # If user chose doctor interactively, run it now
+        if getattr(args, "doctor", False):
+            return doctor()
     elif not args.pkgname:
         print("pkgname is required. Provide it positionally or use --interactive.", file=sys.stderr)
         return 2
