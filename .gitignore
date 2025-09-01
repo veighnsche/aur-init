@@ -1,0 +1,12 @@
+# Build artifacts
+/pkg/
+/src/
+*.tar.*
+*.log
+*.lock
+
+# Test/Smoke artifacts
+/.smoke/
+/.pytest_cache/
+/.benchmarks/
+/__pycache__/
